@@ -1,0 +1,150 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <title>Ingresar productos</title>
+    <meta charset="utf-8">
+    <meta charset="ISO-8859-1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap3-dialog/1.34.7/css/bootstrap-dialog.min.css">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap3-dialog/1.34.7/js/bootstrap-dialog.min.js"></script>
+    <link href="{{ url_for('static', filename='css/datatables.min.css') }}" rel="stylesheet" type="text/css">
+    <script src="{{ url_for('static', filename='js/datatables.min.js') }}"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/style.css') }}">
+    <script>
+    $(document).ready(function() {
+        var tabla;
+
+        tabla = $('#myTable').dataTable({
+            dom: 'Bfrtip',
+            buttons: [
+                'csvHtml5'
+            ],
+            'ajax': {
+                "type": "POST",
+                "url": '/beerData',
+                "dataSrc": "data",
+                "deferRender": true
+            },
+            'columns': [
+                { "data": "time" },
+                { "data": "temperature" }
+            ],
+        });
+
+        setInterval(function() {
+            tabla.api().ajax.reload();
+
+        }, 30000);
+
+
+    });
+    </script>
+    <script type="text/javascript">
+
+    
+    
+    function sendData() {
+         var req = new XMLHttpRequest()
+         req.open('POST', '/beer')
+        req.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+        if (document.getElementById("temperature_alarm").value != ""){
+        var receiver_mail = "";
+         var types = [
+            BootstrapDialog.TYPE_WARNING
+        ];
+
+        $.each(types, function(index, type) {
+            BootstrapDialog.show({
+                type: type,
+                title: 'Servicio de notificaciones',
+                message: $('<h5>¿Donde quiere recibir las notificaciones?</h5><input type="mail" id="ReceiverMail" placeholder="su_mail@ejemplo.com">'),
+                buttons: [{
+                    hotkey: 13,
+                    label: 'Continuar',
+                    action: function(dialogRef) {
+                        receiver_mail = $('#ReceiverMail').val();
+                        dialogRef.close();
+                        var postVars = 'refresh_rate=' + document.getElementById("refresh_rate").value + '&temperature_alarm=' + document.getElementById("temperature_alarm").value+'&receiver_mail=' + receiver_mail;
+        req.send(postVars);
+                    }
+                }]
+            });
+        });
+
+
+}else{
+        
+        var postVars = 'refresh_rate=' + document.getElementById("refresh_rate").value + '&temperature_alarm=' + document.getElementById("temperature_alarm").value+'&receiver_mail=' + '';
+        req.send(postVars);
+        }
+        
+        return false
+        
+    }
+
+    </script>
+
+</head>
+
+<body>
+    <!-- Section: intro -->
+    <section>
+
+        <div class="container">
+            <div id="Header class="panel panel-primary" style="margin:20px">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><font size="5px" color="black">Ajustes</font></h3>
+                </div>
+                <div class="panel-body Background">
+                    <form method="POST">
+                        <div class="Foreground col-md-12 col-sm-12">
+                            <div class="form-group col-md-6 col-sm-6">
+                                <label for="name"><font size="4px" color="black">Alarma de temperatura</font></label>
+                                {%if alarm_activited%}
+                                    <input type="number" class="form-control input-sm" id="temperature_alarm" name="quantity" min="-55" max="125" placeholder="Temperatura" value={{alarm_value}}>
+                                {% else %}
+                                    <input type="number" class="form-control input-sm" id="temperature_alarm" name="quantity" min="-55" max="125" placeholder="Temperatura">
+                                {% endif %}
+                            </div>
+                            <div class="form-group col-md-6 col-sm-6">
+                                <label for="name"><font size="4px" color="black">Tiempo de actualización</font></label>
+                                <select class="form-control input-sm4" id="refresh_rate" name="refresh_rate">
+                                    <option value="30000" selected="1">30 segundos</option>
+                                    <option value="60000">1 minuto</option>
+                                    <option value="300000">5 minutos</option>
+                                    <option value="600000">10 minutos</option>
+                                    <option value="1800000">30 minutos</option>
+                                    <option value="3600000">1 hora</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-12 col-sm-12">
+                                <input onClick="return sendData();" id="Enviar" href="#" type="submit" class="btn btn-primary" value="Enviar" />
+                            </div>
+                        </div>
+                </div>
+            </div>
+            </form>
+        </div>
+    </section>
+    <section>
+        <div class="container caja">
+            <table id="myTable" class="table" style="overflow-x:auto;">
+                <thead>
+                    <tr>
+                        <th><font size="4px" color="black">Hora</font></th>
+                        <th><font size="4px" color="black">Temperatura</font></th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </section>
+</body>
+
+</html>
